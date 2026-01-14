@@ -1,0 +1,64 @@
+# ===============================
+# Python
+# ===============================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# ===============================
+# Jupyter / IPython
+# ===============================
+.ipynb_checkpoints/
+
+# ===============================
+# Solver / optimization outputs
+# ===============================
+*.lp
+*.mps
+*.sav
+*.log
+*.sol
+*.csv
+
+# ===============================
+# OS-specific files
+# ===============================
+.DS_Store
+Thumbs.db
+
+# ===============================
+# VS Code
+# ===============================
+.vscode/
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# ===============================
+# Temporary / scratch files
+# ===============================
+*.tmp
+*.bak
+*.swp
+*.lock
+
+# ===============================
+# Build / distribution
+# ===============================
+build/
+dist/
+
+# ===============================
+# Keep datasets (IMPORTANT)
+# ===============================
+!data/
+!data/**
