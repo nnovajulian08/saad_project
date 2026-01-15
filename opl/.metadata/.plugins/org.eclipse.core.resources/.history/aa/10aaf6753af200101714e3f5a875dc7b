@@ -20,7 +20,7 @@ int duration[Jobs][Ops] = ...;   // processing times
 int M = sum(j in Jobs, k in Ops) duration[j][k];
 
 // ----------- INDEX SET OF CONFLICTING PAIRS (same machine) -----------
-// We created a set of pairs of operations (j1,k1) and (j2,k2)
+// We create a set of pairs of operations (j1,k1) and (j2,k2)
 // that require the SAME machine, and we only keep one direction (j1,k1) < (j2,k2)
 // to avoid duplicates.
 tuple Pair {

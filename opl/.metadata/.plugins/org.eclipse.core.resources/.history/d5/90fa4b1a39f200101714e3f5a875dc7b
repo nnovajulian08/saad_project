@@ -18,9 +18,6 @@
             			
             <ref name="opl_mip.mod" type="model">
 			</ref>
-            			
-            <ref name="ft_10.dat" type="data">
-			</ref>
             		
         </config>
         	

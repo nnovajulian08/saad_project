@@ -1,7 +1,7 @@
-# saad_project# Job Shop Scheduling: MIP vs CP Comparison
+# Job Shop Scheduling: MIP vs CP Comparison
 
 This project studies the **Job Shop Scheduling Problem (JSP)** using two different
-optimization paradigms implemented in **IBM ILOG CPLEX Optimization Studio**:
+optimization models implemented in **IBM ILOG CPLEX Optimization Studio**:
 
 - **Mixed-Integer Programming (MIP)** with Big-M disjunctive constraints  
 - **Constraint Programming (CP)** with interval variables and global constraints  
@@ -18,10 +18,10 @@ The Job Shop Scheduling Problem consists of:
 - A set of jobs, each composed of a fixed sequence of operations
 - A set of machines, where each operation requires exactly one machine
 - No machine can process more than one operation at a time
-- Operations within a job must respect precedence constraints
+- Operations within a job must respect precedence constraints. Meaning operation 1 must occur before operation 2
 
 The goal is to find a feasible schedule that **minimizes the makespan**
-(completion time of the last operation).
+(total time to complete all jobs).
 
 ---
 
@@ -66,7 +66,7 @@ The goal is to find a feasible schedule that **minimizes the makespan**
 
 ##  Experimental Setup
 
-- **Benchmark**: Fisher and Thompson dataset (`ft06`)
+- **Benchmark**: Fisher and Thompson datasets (`ft06` and `ft10`)
 - **Solvers**:
   - CPLEX MIP Solver
   - CP Optimizer
@@ -80,7 +80,20 @@ The goal is to find a feasible schedule that **minimizes the makespan**
   - KPI plots for performance comparison
 
 ---
+### Note on MIP Scalability (ft10)
 
+The MIP formulation could not be executed for the `ft10` instance using the
+CPLEX Community Edition due to model size limitations
+(`CPLEX Error 1016: Problem size limits exceeded`).  
+The Big-M MIP model introduces binary sequencing variables and disjunctive
+constraints for each pair of conflicting operations, causing the model size to
+grow rapidly with the instance size.
+
+In contrast, the CP formulation remains solvable for `ft10` thanks to its use of
+interval variables and global constraints (`noOverlap`), which provide a more
+compact representation and better scalability under limited solver resources.
+
+---
 ## Key Results (ft06)
 
 | Metric | MIP | CP |
@@ -99,7 +112,7 @@ modeling and branching overhead.
 
 ## Schedule Visualization
 
-The project includes **Gantt charts** illustrating machine usage over time. These
+The project includes **Gantt charts** illustrating the machine schedule over time. These
 confirm:
 - No machine conflicts
 - Correct job precedence
@@ -113,6 +126,7 @@ confirm:
 - Python (for KPI plots and Gantt chart generation)
   - `pandas`
   - `matplotlib`
+  - `seaborn`
 - LaTeX (Overleaf compatible)
 
 ---
@@ -124,7 +138,8 @@ confirm:
    - MIP model with CPLEX
    - CP model with CP Optimizer
 3. Export schedules to CSV
-4. Generate gantt charts using Python script (gantt.py) 
+4. Generate gantt charts using Python script (gantt.py): 
+   - Change the `instance` and `method` variable values as desired.
 5. Generate KPI plots using Python script (kpis.py)
 
 ---
