@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="IloNewOplProjectWizard">
+		<item key="IloNewOplProjectWizard.STORE_ROOT_DIRECTORY" value="C:\Users\julia\Documents\data-science-masters\05_Sistemas\Project\saad_project\opl"/>
+		<section name="IloNewOplProjectWizard.dialogBounds">
+			<item key="DIALOG_X_ORIGIN" value="94"/>
+			<item key="DIALOG_Y_ORIGIN" value="218"/>
+			<item key="DIALOG_WIDTH" value="875"/>
+			<item key="DIALOG_HEIGHT" value="574"/>
+			<item key="DIALOG_FONT_NAME" value="1|Segoe UI|9.0|0|WINDOWS|1|-18|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI"/>
+		</section>
+	</section>
+	<section name="IloNewRunConfigWizard">
+		<item key="IloNewRunConfigWizard.STORE_SET_AS_DEFAULT" value="false"/>
+		<section name="IloNewRunConfigWizard.dialogBounds">
+			<item key="DIALOG_X_ORIGIN" value="523"/>
+			<item key="DIALOG_Y_ORIGIN" value="288"/>
+			<item key="DIALOG_WIDTH" value="875"/>
+			<item key="DIALOG_HEIGHT" value="500"/>
+			<item key="DIALOG_FONT_NAME" value="1|Segoe UI|9.0|0|WINDOWS|1|-18|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI"/>
+		</section>
+	</section>
+</section>
