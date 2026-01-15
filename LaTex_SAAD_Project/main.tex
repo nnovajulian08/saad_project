@@ -1,0 +1,287 @@
+\documentclass[runningheads]{llncs}
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{float}      % For [H] placement option
+\usepackage{subcaption} % For subfigures (optional)
+\usepackage{placeins}   % For \FloatBarrier
+
+\title{Comparing MIP and CP \\ 
+for the Job Shop Scheduling Problem}
+
+\author{Julian Nunez Nova, Kirill Savin, Tanzim Hossain}
+\authorrunning{Julian Nunez Nova, Kirill Savin, Tanzim Hossain}
+
+\institute{
+Faculty of Engineering, University of Porto (FEUP) \\}
+
+\begin{document}
+\maketitle
+
+% -------------------- ABSTRACT --------------------
+\begin{abstract}
+The Job Shop Scheduling Problem (JSP) is a classical NP-hard optimization problem
+with significant relevance in manufacturing and production planning.
+In this work, we study and compare two exact optimization approaches for solving
+the JSP: Mixed-Integer Programming (MIP) and Constraint Programming (CP).
+Both models are implemented using IBM ILOG CPLEX Studio and evaluated on benchmark
+instances from the Fisher and Thompson dataset.
+We analyze solution quality, resolution time, and model scalability, highlighting
+the strengths and limitations of each approach.
+\keywords{Mixed-Integer Programming \and Constraint Programming}
+\end{abstract}
+
+% -------------------- 1. INTRODUCTION --------------------
+\section{Introduction}
+
+The Job Shop Scheduling Problem (JSP) consists of scheduling a set of jobs,
+each composed of a sequence of operations, on a set of machines.
+Each operation must be processed on a specific machine for a fixed duration,
+and machines can handle at most one operation at a time.
+The objective is typically to minimize the makespan, defined as the completion
+time of the last operation.
+
+Due to its combinatorial nature, the JSP is known to be NP-hard.
+Several exact and heuristic approaches have been proposed, among which
+Mixed-Integer Programming (MIP) and Constraint Programming (CP) are widely used.
+This paper aims to compare these two modeling paradigms in terms of
+solution quality and computational performance.
+
+% -------------------- 2. MIP MODEL --------------------
+\subsection{Mixed-Integer Programming (MIP) Model}
+
+We model the Job Shop Scheduling Problem (JSP) with start-time variables and
+Big-$M$ disjunctive constraints to enforce machine capacity. The objective is
+to minimize the makespan.
+
+\paragraph{Sets and indices.}
+$J=\{1,\dots,n\}$ (jobs), 
+$K=\{1,\dots,m\}$ (operations per job, $m$ machines total).
+
+\paragraph{Parameters.}
+$M_{j,k}\in\{1,\dots,m\}$ is the machine required by operation $(j,k)$;
+$p_{j,k}\in\mathbb{Z}_{\ge 0}$ is its processing time.
+A valid Big-$M$ is:
+\[
+M=\sum_{j\in J}\sum_{k\in K} p_{j,k}.
+\]
+
+\paragraph{Conflict set (operations on same machine, different jobs).}
+\[
+\mathcal{P}=
+\Bigl\{(j_1,k_1,j_2,k_2)\ \Big|\ 
+j_1 < j_2,\ 
+M_{j_1,k_1}=M_{j_2,k_2}
+\Bigr\}.
+\]
+
+\paragraph{Decision variables.}
+$t_{j,k}\in\mathbb{Z}_{\ge 0}$ start time of operation $(j,k)$,
+$C_{\max}\in\mathbb{Z}_{\ge 0}$ makespan,
+$y_{j_1,k_1,j_2,k_2}\in\{0,1\}$ for each $(j_1,k_1,j_2,k_2)\in\mathcal{P}$, 
+where $y_{j_1,k_1,j_2,k_2}=1$ means $(j_1,k_1)$ precedes $(j_2,k_2)$.
+
+\paragraph{MIP model:}
+\begin{align}
+\min \quad & C_{\max} \\[4pt]
+\text{s.t.}\quad
+& t_{j,k+1} \ge t_{j,k} + p_{j,k}
+    && \forall j \in J,\; k = 1,\dots,m-1 \\[4pt]
+& t_{j_1,k_1} + p_{j_1,k_1} \le t_{j_2,k_2} + M(1 - y_{j_1,k_1,j_2,k_2})
+    && \forall (j_1,k_1,j_2,k_2) \in \mathcal{P} \\[4pt]
+& t_{j_2,k_2} + p_{j_2,k_2} \le t_{j_1,k_1} + M y_{j_1,k_1,j_2,k_2}
+    && \forall (j_1,k_1,j_2,k_2) \in \mathcal{P} \\[4pt]
+& C_{\max} \ge t_{j,m} + p_{j,m}
+    && \forall j \in J \\[4pt]
+& t_{j,k} \in \mathbb{Z}_{\ge 0}
+    && \forall j \in J,\; k \in K \\[2pt]
+& y_{j_1,k_1,j_2,k_2} \in \{0,1\}
+    && \forall (j_1,k_1,j_2,k_2) \in \mathcal{P}, \\[2pt]
+& C_{\max} \in \mathbb{Z}_{\ge 0}.
+\end{align}
+
+% -------------------- 3. CP MODEL --------------------
+\section{Constraint Programming Model}
+
+The Job Shop Scheduling Problem is also formulated using Constraint Programming
+(CP), where operations are modeled as interval variables with fixed durations.
+
+\paragraph{Sets and indices.}
+Let
+\[
+J = \{1,\dots,n\},\qquad 
+K = \{1,\dots,m\},\qquad 
+\mathcal{M} = \{1,\dots,m\}.
+\]
+
+\paragraph{Parameters.}
+\[
+M_{j,k} \in \mathcal{M}, \qquad p_{j,k} \in \mathbb{Z}_{\ge 0},
+\quad \forall j\in J,\; k\in K.
+\]
+
+\paragraph{Decision variables.}
+\[
+O_{j,k} \text{ is an interval variable of fixed size } p_{j,k},
+\quad \forall j\in J,\; k\in K,
+\]
+\[
+C_{\max} \in \mathbb{Z}_{\ge 0}.
+\]
+
+\paragraph{CP model.}
+\begin{align}
+\min \quad & C_{\max} \\[6pt]
+\text{s.t.}\quad
+& \operatorname{endBeforeStart}(O_{j,k},\, O_{j,k+1})
+    && \forall j \in J,\; k = 1,\dots,m-1 \\[6pt]
+& \operatorname{noOverlap}\!\left(
+    \{ O_{j,k} \mid j \in J,\; k \in K,\; M_{j,k} = \mu \}
+\right)
+    && \forall \mu \in \mathcal{M} \\[6pt]
+& C_{\max} \ge \operatorname{endOf}(O_{j,m})
+    && \forall j \in J.
+\end{align}
+
+% -------------------- 4. EXPERIMENTAL RESULTS --------------------
+\section{Experimental Results}
+
+\subsection{Test Instances and Limitations}
+Experiments were conducted using benchmark instances from the JSPLIB GitHub repository \cite{JSPLIBGitHub}, which contains the Fisher and Thompson job-shop scheduling dataset. The \texttt{ft06} instance was specifically used to evaluate both MIP and CP formulations.
+
+The MIP model was solved for \texttt{ft06} but failed on \texttt{ft10} due to CPLEX Community Edition size limits. The Big-$M$ MIP model introduces binary sequencing variables and disjunctive constraints for each pair of conflicting operations, causing the model size to grow rapidly with the instance size.
+
+In contrast, the CP formulation remains solvable for \texttt{ft06} thanks to its use of interval variables and global constraints \texttt{noOverlap}, which provide a more compact representation and better scalability under limited solver resources.
+
+\subsection{Key Performance Indicators}
+The following key performance indicators (KPIs) were analyzed:
+\begin{itemize}
+    \item Optimal makespan
+    \item Resolution time
+    \item Time to first feasible solution
+    \item Model size and search effort
+\end{itemize}
+
+\subsection{Comparison Between MIP and CP}
+
+\begin{table}[H]
+\centering
+\caption{Performance comparison for instance \texttt{ft06}}
+\label{tab:ft06_comparison}
+\begin{tabular}{lcc}
+\toprule
+Metric & MIP & CP \\
+\midrule
+Makespan & 61 & 61 \\
+Solve time (s) & 0.23 & 0.07 \\
+Time to first feasible (s) & 0.11 & 0.06 \\
+Nodes / Branches & 184 & 140,983 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+Both MIP and CP reach the optimal makespan for the \texttt{ft06} instance, confirming equivalent solution quality; however, their performance metrics reveal distinct ways of handling the problem’s combinatorial complexity. The CP model finds feasible solutions faster and achieves shorter overall solve times due to strong constraint propagation enabled by global constraints such as \texttt{noOverlap}, which efficiently prune infeasible schedules early in the search. Although CP explores a much larger number of branches, each branching decision is computationally inexpensive, allowing rapid traversal of the search space. In contrast, the MIP formulation explores far fewer nodes, but each node requires solving a linear relaxation, resulting in higher computational cost per decision and longer solve times. These results indicate that the complexity of the Job Shop Scheduling Problem is strongly influenced by the modeling approach, with CP distributing complexity across many lightweight decisions and MIP concentrating it into fewer but more expensive optimization steps.
+
+\subsection{Schedule Visualization}
+
+\begin{figure}[H]
+\includegraphics[width=0.91\textwidth]{gantt_ft06_CP.png}
+\caption{Gantt chart for the \texttt{ft06} instance obtained with the CP model}
+\label{fig:gantt_ft06_cp}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[width=0.91\textwidth]{gantt_ft10_CP.png}
+\caption{Gantt chart for the \texttt{ft10} instance obtained with the CP model}
+\label{fig:gantt_ft06_cp}
+\end{figure}
+
+The Gantt chart illustrates the execution of operations across machines over
+time, confirming that no machine conflicts occur and that all job precedence
+constraints are respected.
+
+\subsection{KPI Analysis}
+
+% Option 1: Individual figures (force placement with [H])
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{kpi_ft06_makespan.png}
+\caption{Makespan comparison for the \texttt{ft06} instance}
+\label{fig:kpi_ft06_makespan}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{kpi_ft06_solve_time.png}
+\caption{Solve time comparison for the \texttt{ft06} instance}
+\label{fig:kpi_solve_time}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{kpi_ft06_model_size.png}
+\caption{Model size and search effort comparison for the \texttt{ft06} instance}
+\label{fig:kpi_model_size}
+\end{figure}
+
+The KPI plots further highlight the performance differences between the two
+approaches. While both formulations achieve identical solution quality, the CP
+model benefits from stronger constraint propagation, resulting in faster
+convergence despite a larger search space.
+
+% -------------------- 5. CONCLUSIONS --------------------
+\section{Conclusions}
+
+Both MIP and CP successfully obtained optimal solutions for the tested job-shop scheduling instances. Key observations from our comparative analysis include:
+
+\begin{itemize}
+    \item Both MIP and CP achieve optimal solutions for small instances such as \texttt{ft06}.
+    
+    \item CP provides faster feasibility detection and solution times due to stronger constraint propagation.
+    
+    \item MIP explores fewer search nodes but incurs higher computational cost per node due to linear programming relaxations.
+    
+    \item CP scales more effectively under limited solver resources (e.g., CPLEX Community Edition).
+    
+    \item The modeling paradigm choice significantly impacts practical problem complexity and solver performance.
+\end{itemize}
+
+While CP demonstrated superior performance in terms of resolution time and modeling simplicity—leveraging global scheduling constraints such as \texttt{noOverlap}—the MIP formulation remains valuable for its flexibility and compatibility with a wide range of optimization techniques.
+
+% -------------------- 5.Future Work --------------------
+\section{Future Work}
+
+Future research will extend the experimental evaluation to larger and more diverse benchmark instances to further assess the scalability of MIP and CP formulations. Several promising directions include:
+
+\begin{itemize}
+    \item \textbf{Alternative MIP formulations:} Investigating time-indexed and flow-based models, along with tighter linearization techniques, to reduce model size and improve computational performance.
+    
+    \item \textbf{Hybrid MIP/CP approaches:} Combining CP's rapid feasibility search with MIP's exact optimization capabilities, using CP to generate high-quality initial solutions and MIP to prove optimality.
+    
+    \item \textbf{Enhanced solver tuning:} Evaluating solver behavior under varied parameter settings and licensed configurations to better understand trade-offs between modeling expressiveness, computational efficiency, and solution quality.
+    
+    \item \textbf{Larger instance benchmarks:} Extending tests to more challenging instances beyond \texttt{ft06} and \texttt{ft10} to examine how both methods scale with increasing problem size.
+\end{itemize}
+
+These directions aim to bridge the gaps identified in this study and provide more robust, scalable solutions for complex scheduling problems in both academic and industrial settings.
+
+
+% -------------------- REFERENCES --------------------
+\begin{thebibliography}{8}
+
+\bibitem{JSPLIBGitHub}
+Tamaki, H., et al.: JSPLIB: Benchmark instances for job-shop scheduling problems.
+GitHub repository: \url{https://github.com/tamy0612/JSPLIB} 
+
+\bibitem{cpoptimizer}
+IBM ILOG CP Optimizer User's Manual. IBM (2024)
+
+\bibitem{cplex}
+IBM ILOG CPLEX Optimization Studio User's Manual. IBM (2024)
+
+\end{thebibliography}
+
+\end{document}
