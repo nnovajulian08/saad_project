@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="ASCII"?><project>
+    	
+    <version>1.0</version>
+    	
+    <configs>
+        		
+        <config default="true" name="opl_cp_run" category="opl">
+            			
+            <ref name="opl_cp.mod" type="model">
+			</ref>
+            		
+        </config>
+        		
+        <config default="false" name="opl_mip_run" category="opl">
+            			
+            <ref name="opl_mip.mod" type="model">
+			</ref>
+            			
+            <ref name="ft_06.dat" type="data">
+			</ref>
+            		
+        </config>
+        	
+    </configs>
+    	
+
+</project>

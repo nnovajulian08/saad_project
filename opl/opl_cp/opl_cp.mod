@@ -1,0 +1,43 @@
+// ================================
+// Job Shop Scheduling (JSP) - CP Optimizer
+// Interval variables + noOverlap
+// Objective: minimize makespan
+// ================================
+
+using CP;
+
+// ----------- DATA -----------
+int nJobs = ...;
+int nMachines = ...;
+
+range Jobs = 1..nJobs;
+range Ops  = 1..nMachines;
+range Machines = 1..nMachines;
+
+int machine[Jobs][Ops] = ...;     // must be 1..nMachines
+int duration[Jobs][Ops] = ...;
+
+// ----------- DECISION VARIABLES -----------
+dvar interval op[j in Jobs][k in Ops] size duration[j][k];
+dvar int Cmax;
+
+// ----------- OBJECTIVE -----------
+minimize Cmax;
+
+// ----------- CONSTRAINTS -----------
+subject to {
+
+  // 1) Precedence inside each job
+  forall(j in Jobs, k in 1..nMachines-1)
+    endBeforeStart(op[j][k], op[j][k+1]);
+
+  // 2) Machine capacity: operations on same machine cannot overlap
+  forall(m in Machines)
+    noOverlap( all(j in Jobs, k in Ops : machine[j][k] == m) op[j][k] );
+
+  // 3) Makespan definition
+  forall(j in Jobs)
+    Cmax >= endOf(op[j][nMachines]);
+}
+
+

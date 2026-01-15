@@ -1,0 +1,87 @@
+//====================================================
+// Job Shop Scheduling - CP (IBM ILOG CP Optimizer)
+// Data expected in .dat:
+//   nJobs, nMachines
+//   machine[j][k]   (1..nMachines)
+//   duration[j][k]
+//====================================================
+
+using CP;
+
+//-------------------- DATA --------------------------
+int nJobs     = ...;
+int nMachines = ...;
+
+range Jobs     = 1..nJobs;
+range Ops      = 1..nMachines;   // each job has exactly nMachines operations
+range Machines = 1..nMachines;
+
+// machine used by job j at operation k (value in 1..nMachines)
+int machine[Jobs][Ops]   = ...;
+// processing time of that operation
+int duration[Jobs][Ops]  = ...;
+
+// A safe upper bound for scheduling horizon
+int H = sum(j in Jobs, k in Ops) duration[j][k];
+
+//----------------- DECISION VARS --------------------
+// One interval per (job,operation), fixed size = duration
+dvar interval op[Jobs][Ops] in 0..H size duration[j][k];
+
+// Makespan
+dvar int Cmax;
+
+//------------------ CONSTRAINTS ---------------------
+subject to {
+
+  // 1) Precedence inside each job: op[j,k] before op[j,k+1]
+  forall(j in Jobs, k in 1..nMachines-1)
+    endBeforeStart(op[j][k], op[j][k+1]);
+
+  // 2) Machine capacity: operations assigned to same machine cannot overlap
+  forall(m in Machines)
+    noOverlap( all(j in Jobs, k in Ops : machine[j][k] == m) op[j][k] );
+
+  // 3) Makespan definition: Cmax >= end of last operation of each job
+  forall(j in Jobs)
+    Cmax >= endOf(op[j][nMachines]);
+}
+
+//------------------ OBJECTIVE -----------------------
+minimize Cmax;
+
+//------------------- OUTPUT -------------------------
+execute {
+  writeln("=======================================");
+  writeln("CP Job Shop Schedule");
+  writeln("Status: ", cp.getStatus());
+  writeln("Cmax = ", Cmax);
+  writeln("=======================================");
+
+  // Job-wise printout
+  for (var j in Jobs) {
+    writeln("Job ", j, ":");
+    for (var k in Ops) {
+      writeln("  Op ", k,
+              "  (M=", machine[j][k],
+              ", p=", duration[j][k], ")",
+              "  start=", startOf(op[j][k]),
+              "  end=",   endOf(op[j][k]));
+    }
+  }
+
+  writeln("---------------------------------------");
+  // Machine-wise listing (simple)
+  for (var m in Machines) {
+    writeln("Machine ", m, " ops:");
+    for (var j in Jobs) {
+      for (var k in Ops) {
+        if (machine[j][k] == m) {
+          writeln("  Job ", j, " Op ", k,
+                  "  [", startOf(op[j][k]), ", ", endOf(op[j][k]), ")");
+        }
+      }
+    }
+  }
+  writeln("=======================================");
+}
